@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPI Sizzle — Footage Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#111;color:#fff;min-height:100vh;font-size:13px}
+header{background:#C41230;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200}
+.logo{font-size:12px;font-weight:700;letter-spacing:.12em}
+.header-right{display:flex;align-items:center;gap:12px;font-size:10px;color:rgba(255,255,255,.6);letter-spacing:.08em}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .3s}
+.sync-dot.syncing{background:#fbbf24}
+.sync-dot.ok{background:#7ed37e}
+.sync-dot.err{background:#f87171}
+.main{max-width:1280px;margin:0 auto;padding:1.5rem}
+.import-zone{border:1px dashed rgba(255,255,255,.18);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;background:rgba(255,255,255,.03)}
+.import-zone h3{font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:.75rem}
+.cmd-block{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.6rem 1rem;font-family:'Courier New',monospace;font-size:11px;color:#7dd3b0;margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.cmd-block span{flex:1;word-break:break-all}
+.copy-btn{font-size:10px;padding:3px 8px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:4px;color:rgba(255,255,255,.45);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.copy-btn:hover{color:#fff;border-color:rgba(255,255,255,.5)}
+.drop-zone{border:1px dashed rgba(255,255,255,.15);border-radius:6px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s;margin-top:.6rem}
+.drop-zone:hover,.drop-zone.drag{border-color:#C41230;background:rgba(196,18,48,.07)}
+.drop-zone p{font-size:11px;color:rgba(255,255,255,.35);margin-top:4px}
+#import-msg{margin-top:8px;font-size:11px;padding:5px 10px;border-radius:4px;display:none}
+#import-msg.ok{background:#eaf3de;color:#3b6d11;display:block}
+#import-msg.err{background:#fce8e8;color:#a32d2d;display:block}
+.controls{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.filters{display:flex;gap:5px;flex-wrap:wrap;flex:1}
+.pill{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.45);cursor:pointer;transition:all .15s}
+.pill:hover{border-color:rgba(255,255,255,.4);color:#fff}
+.pill.active{background:#fff;color:#111;border-color:#fff}
+.search-wrap{position:relative}
+.search-wrap input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 10px 6px 28px;font-size:11px;color:#fff;width:180px;outline:none}
+.search-wrap input::placeholder{color:rgba(255,255,255,.25)}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.35;pointer-events:none}
+.add-btn{font-size:11px;padding:5px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);cursor:pointer;white-space:nowrap}
+.add-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.stats{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:7px 12px;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.04em}
+.stat strong{font-size:18px;font-weight:500;display:block;line-height:1.1}
+.beat-section{margin-bottom:1.5rem}
+.beat-header{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:6px 6px 0 0;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08)}
+.beat-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.05em}
+.beat-label{font-size:12px;font-weight:500}
+.beat-count{margin-left:auto;font-size:10px;color:rgba(255,255,255,.35)}
+.table-wrap{border:1px solid rgba(255,255,255,.08);border-top:none;border-radius:0 0 6px 6px;overflow:hidden}
+.trow{display:grid;grid-template-columns:2fr 1.3fr .6fr .75fr 1.6fr 28px;border-bottom:1px solid rgba(255,255,255,.06);align-items:stretch;min-height:42px}
+.trow:last-child{border-bottom:none}
+.trow.thead{background:rgba(255,255,255,.03);min-height:30px}
+.trow:not(.thead):hover{background:rgba(255,255,255,.025)}
+.tcell{padding:7px 10px;display:flex;align-items:center}
+.thead .tcell{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.08em;text-transform:uppercase}
+.edit-text{background:transparent;border:none;font-size:11px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#fff;width:100%;outline:none;padding:0}
+.edit-text::placeholder{color:rgba(255,255,255,.2)}
+.sub-text{font-size:10px;color:rgba(255,255,255,.3);font-family:'Courier New',monospace;width:100%;background:transparent;border:none;outline:none;padding:0;margin-top:3px}
+.sub-text::placeholder{color:rgba(255,255,255,.15)}
+.cell-stack{display:flex;flex-direction:column;width:100%}
+.pri-btn{font-size:10px;padding:2px 8px;border-radius:10px;border:none;cursor:pointer;font-weight:500;white-space:nowrap}
+.pri-high{background:#faeeda;color:#854f0b}
+.pri-med{background:#e6f1fb;color:#185fa5}
+.pri-low{background:#f1efe8;color:#5f5e5a}
+.beat-select{background:transparent;border:none;font-size:10px;color:rgba(255,255,255,.5);outline:none;cursor:pointer;width:100%;padding:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif}
+.beat-select option{background:#222;color:#fff}
+.status-btn{font-size:10px;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;white-space:nowrap;transition:all .15s;width:100%}
+.status-btn.pulled{background:#eaf3de;color:#3b6d11;border-color:#c0dd97}
+.status-btn.flagged{background:#faeeda;color:#854f0b;border-color:#fac775}
+.status-btn.skip{background:#f1efe8;color:#5f5e5a;border-color:#d3d1c7;text-decoration:line-through}
+.note-ta{width:100%;background:transparent;border:none;font-size:11px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:rgba(255,255,255,.6);resize:none;outline:none;line-height:1.5;min-height:36px}
+.note-ta::placeholder{color:rgba(255,255,255,.18)}
+.note-ta:focus{color:#fff}
+.del-btn{background:transparent;border:none;color:rgba(255,255,255,.15);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.del-btn:hover{color:#C41230}
+.loading{text-align:center;padding:3rem;color:rgba(255,255,255,.3);font-size:12px}
+.empty{text-align:center;padding:2.5rem;color:rgba(255,255,255,.2);font-size:12px}
+footer{border-top:1px solid rgba(255,255,255,.07);padding:1.25rem;text-align:center;font-size:10px;color:rgba(255,255,255,.15);letter-spacing:.08em;margin-top:2rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">COLLECTIVEFFORT × RPI</div>
+  <div class="header-right">
+    <span id="sync-label">loading...</span>
+    <span class="sync-dot" id="sync-dot"></span>
+    <span>SIZZLE REEL — FOOTAGE TRACKER</span>
+  </div>
+</header>
+<div class="main">
+  <div class="import-zone">
+    <h3>Generate folder log — run in Terminal, drop file below</h3>
+    <div class="cmd-block">
+      <span id="cmd1">find /Volumes/Peace/Public/RPI\ Marketing -maxdepth 4 -type d > ~/Desktop/folder_log.txt</span>
+      <button class="copy-btn" onclick="copyCmd('cmd1',this)">copy</button>
+    </div>
+    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:.5rem">Swap path to match any drive. Run in Terminal → file saves to Desktop → drop below. Duplicates skipped automatically.</div>
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-in').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event)">
+      <div style="font-size:20px;opacity:.3">↑</div>
+      <p>Drop .txt folder log here or click to browse</p>
+    </div>
+    <input type="file" id="file-in" accept=".txt" style="display:none" onchange="handleFile(this.files[0])">
+    <div id="import-msg"></div>
+  </div>
+  <div class="controls">
+    <div class="filters">
+      <button class="pill active" onclick="setFilter('all',this)">All</button>
+      <button class="pill" onclick="setFilter('hook',this)">⚡ Hook</button>
+      <button class="pill" onclick="setFilter('b01',this)">01</button>
+      <button class="pill" onclick="setFilter('b02',this)">02</button>
+      <button class="pill" onclick="setFilter('b03',this)">03</button>
+      <button class="pill" onclick="setFilter('b04',this)">04</button>
+      <button class="pill" onclick="setFilter('b05',this)">05</button>
+      <button class="pill" onclick="setFilter('tbd',this)">TBD / Rights</button>
+      <button class="pill" onclick="setFilter('new',this)">New</button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="search" placeholder="Search..." oninput="render()">
+    </div>
+    <button class="add-btn" onclick="addRow()">+ Add folder</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div id="content"><div class="loading">Loading footage library...</div></div>
+</div>
+<footer>COLLECTIVEFFORT × RPI &nbsp;·&nbsp; SIZZLE REEL &nbsp;·&nbsp; 2026</footer>
+
+<script>
+const API = '/.netlify/functions/airtable';
+
+const BEATS = [
+  {id:'hook',label:'⚡ Hook candidates',num:'⚡',bg:'#3d1a00',tc:'#fb923c'},
+  {id:'b01', label:'01 — Hook (0-5s)',num:'01',bg:'#3d0a11',tc:'#f87171'},
+  {id:'b02', label:'02 — Inventive Curiosity (5-15s)',num:'02',bg:'#0c2a47',tc:'#7db8f0'},
+  {id:'b03', label:'03 — Collaboration (15-25s)',num:'03',bg:'#0f2d0f',tc:'#7ed37e'},
+  {id:'b04', label:'04 — Life + Troy (25-35s)',num:'04',bg:'#3d2000',tc:'#fbbf24'},
+  {id:'b05', label:'05 — Inspired (35-45s)',num:'05',bg:'#1e1245',tc:'#a78bfa'},
+  {id:'tbd', label:'TBD — Pending rights',num:'?',bg:'#222',tc:'#888'},
+  {id:'new', label:'Imported — assign beat',num:'↑',bg:'#083427',tc:'#5eead4'},
+];
+
+const SEED = [
+  {beat:'hook',folder:'Main Title Drone',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:'Likely strongest hook — look for movement and height'},
+  {beat:'hook',folder:'Alex & The Prez / Drone',path:'Drive 1 / Segments / Alex & The Prez',pri:'high',status:'unchecked',notes:'Presidential aerial — check for speed and campus reveal'},
+  {beat:'hook',folder:'SAE Formula One — makerspaces',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:'Formula car detail = kinetic close-up hook, in-media-res'},
+  {beat:'hook',folder:'GEMS / Drone',path:'GEMS / FOOTAGE / DRONE',pri:'high',status:'unchecked',notes:'Pending rights — check with Dakota before pulling'},
+  {beat:'hook',folder:'drone — scope',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Scope unclear — pull and review'},
+  {beat:'hook',folder:'Overlooking Troy',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Could be a strong wide establishing frame'},
+  {beat:'hook',folder:'Ice Hockey Arena',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Energy and crowd — possible hook alt'},
+  {beat:'b01',folder:'Main Title Drone',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:'First folder to open'},
+  {beat:'b01',folder:'Alex & The Prez / Drone',path:'Drive 1 / Segments / Alex & The Prez',pri:'high',status:'unchecked',notes:''},
+  {beat:'b01',folder:'drone — scope',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b01',folder:'Overlooking Troy',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Campus horizon — good world-establish frame'},
+  {beat:'b01',folder:'GEMS / Drone',path:'GEMS / FOOTAGE / DRONE',pri:'med',status:'unchecked',notes:'Pending rights'},
+  {beat:'b01',folder:'campus life',path:'Drive 2 / General B-Roll',pri:'low',status:'unchecked',notes:'Backup if drone does not work'},
+  {beat:'b02',folder:'SAE Formula One — makerspaces',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:'Priority pull — hands + build = beat 02 hero'},
+  {beat:'b02',folder:'The Forge',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:'Fabrication space — detail shots'},
+  {beat:'b02',folder:'Engineering work spaces',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:''},
+  {beat:'b02',folder:'The MILL',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:''},
+  {beat:'b02',folder:'CBIS Building',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Center for Biotech — science/lab environment'},
+  {beat:'b02',folder:'computer science',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b02',folder:'Engineering Building',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b02',folder:'architecture studio',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b02',folder:'Greene Building (Architecture)',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b02',folder:'GEMS / THE ARCH footage',path:'GEMS / FOOTAGE / THE ARCH',pri:'med',status:'unchecked',notes:'Pending rights — architecture student profiles'},
+  {beat:'b02',folder:'Named segments — B-Roll',path:'Drive 1 / Segments / [each person]',pri:'med',status:'unchecked',notes:'Review all for lab/work context'},
+  {beat:'b03',folder:'Engineering Ambassadors',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:'Cross-disciplinary group — strong collab visuals'},
+  {beat:'b03',folder:'Alex & The Alumni / Karthik with RPI intern',path:'Drive 1 / Segments / Alex & The Alumni',pri:'high',status:'unchecked',notes:'Faculty + student dynamic, real mentorship moment'},
+  {beat:'b03',folder:'GEMS / Entrepreneurship / Karthik_251024',path:'GEMS / FOOTAGE / ENTREPRENEURSHIP',pri:'high',status:'unchecked',notes:'Pending rights — Karthik Bala, Velan Studios founder'},
+  {beat:'b03',folder:'classroom',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b03',folder:'clubs — organizations',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b03',folder:'Society of Women Engineers',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b03',folder:'GEMS / THE UNION footage',path:'GEMS / FOOTAGE / THE UNION',pri:'med',status:'unchecked',notes:'Pending rights — student government, group meetings'},
+  {beat:'b03',folder:'Albany Med collab footage',path:'Drive 2 / General B-Roll (unorganized)',pri:'high',status:'unchecked',notes:'Spotted during sort — cross-disciplinary with medical institution, flag when found'},
+  {beat:'b03',folder:'Severino Center',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Entrepreneurship center — pitch/collab environment'},
+  {beat:'b04',folder:'Alex & The Prez / Hockey B-roll',path:'Drive 1 / Segments / Alex & The Prez',pri:'high',status:'unchecked',notes:'Fast, energetic — priority for beat 04 open'},
+  {beat:'b04',folder:'Ice Hockey Arena',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:''},
+  {beat:'b04',folder:'football game — school spirit',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:''},
+  {beat:'b04',folder:'athletics',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:''},
+  {beat:'b04',folder:'world class athletic facility',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b04',folder:'Troy, NY',path:'Drive 2 / General B-Roll',pri:'high',status:'unchecked',notes:'City identity — key for beat 04 narrative'},
+  {beat:'b04',folder:"Farmer's Market",path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Human/life moment'},
+  {beat:'b04',folder:'hammocks',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Pure life moment — use it'},
+  {beat:'b04',folder:'a dog',path:'Drive 2 / General B-Roll',pri:'low',status:'unchecked',notes:'Genuinely humanizing'},
+  {beat:'b04',folder:'WRPI Radio',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Student life, creative side'},
+  {beat:'b04',folder:'campus life',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:''},
+  {beat:'b04',folder:'The Union',path:'Drive 2 / General B-Roll',pri:'med',status:'unchecked',notes:'Student hub'},
+  {beat:'b05',folder:'Alex & The Alumni / Velan Studios B-Roll',path:'Drive 1 / Segments / Alex & The Alumni',pri:'high',status:'unchecked',notes:'Real-world impact — Karthik Bala, game studio in Troy'},
+  {beat:'b05',folder:'GEMS / Entrepreneurship — all subjects',path:'GEMS / FOOTAGE / ENTREPRENEURSHIP',pri:'high',status:'unchecked',notes:'Pending rights — Karthik, Tyree, Eric Ledet, Jeff Osborne. Faces of impact.'},
+  {beat:'b05',folder:'GEMS / Exports',path:'GEMS / EXPORTS',pri:'med',status:'unchecked',notes:'Pending rights — may have usable finished sequences'},
+  {beat:'b05',folder:'GEMS / VFX — Titles & Lower Third Final',path:'GEMS / VFX / Titles & Lower Third_FINAL',pri:'med',status:'unchecked',notes:'Pending rights — existing motion graphics'},
+  {beat:'b05',folder:'Named segments — Establishing shots',path:'Drive 1 / Segments / [each person] / Establishing',pri:'med',status:'unchecked',notes:'Clean portrait of each subject — payoff faces'},
+  {beat:'tbd',folder:'GEMS — entire folder',path:'GEMS/',pri:'high',status:'unchecked',notes:'Rights unknown. Ask Dakota: what is GEMS and do we have full usage rights for the sizzle?'},
+];
+
+let data = [];
+let currentFilter = 'all';
+let debounceTimers = {};
+
+function setSyncState(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + state;
+  if (lbl) lbl.textContent = label;
+}
+
+// ── API calls ──────────────────────────────────────────────────────────────
+
+async function loadFromAirtable() {
+  setSyncState('syncing', 'loading...');
+  try {
+    const res = await fetch(API);
+    const records = await res.json();
+    if (!Array.isArray(records)) throw new Error('Bad response');
+
+    if (records.length === 0) {
+      // First load — seed the database
+      setSyncState('syncing', 'seeding...');
+      await seedDatabase();
+    } else {
+      data = records.map(r => ({
+        _id: r.id,
+        beat:   r.fields.Beat   || 'new',
+        folder: r.fields.Folder || '',
+        path:   r.fields.Path   || '',
+        pri:    r.fields.Priority || 'med',
+        status: r.fields.Status || 'unchecked',
+        notes:  r.fields.Notes  || '',
+        isNew:  r.fields.isNew  || false,
+      }));
+    }
+    setSyncState('ok', 'synced');
+    render();
+  } catch(e) {
+    setSyncState('err', 'sync error');
+    console.error(e);
+  }
+}
+
+async function seedDatabase() {
+  const chunks = [];
+  for (let i = 0; i < SEED.length; i += 10) chunks.push(SEED.slice(i, i + 10));
+  for (const chunk of chunks) {
+    await Promise.all(chunk.map(row =>
+      fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: toFields(row) }),
+      })
+    ));
+  }
+  await loadFromAirtable();
+}
+
+function toFields(row) {
+  return {
+    Folder:   row.folder,
+    Path:     row.path,
+    Beat:     row.beat,
+    Priority: row.pri,
+    Status:   row.status,
+    Notes:    row.notes,
+    isNew:    row.isNew || false,
+  };
+}
+
+async function patchRecord(id, fields) {
+  setSyncState('syncing', 'saving...');
+  try {
+    await fetch(API, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, fields }),
+    });
+    setSyncState('ok', 'saved');
+  } catch(e) {
+    setSyncState('err', 'save failed');
+  }
+}
+
+async function createRecord(row) {
+  setSyncState('syncing', 'saving...');
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: toFields(row) }),
+    });
+    const json = await res.json();
+    setSyncState('ok', 'saved');
+    return json.id;
+  } catch(e) {
+    setSyncState('err', 'save failed');
+  }
+}
+
+async function deleteRecord(id) {
+  setSyncState('syncing', 'deleting...');
+  try {
+    await fetch(`${API}?id=${id}`, { method: 'DELETE' });
+    setSyncState('ok', 'deleted');
+  } catch(e) {
+    setSyncState('err', 'delete failed');
+  }
+}
+
+// ── Local state mutations ──────────────────────────────────────────────────
+
+function debounceUpdate(id, fields) {
+  clearTimeout(debounceTimers[id]);
+  debounceTimers[id] = setTimeout(() => patchRecord(id, fields), 600);
+}
+
+function updateField(id, field, value) {
+  const row = data.find(d => d._id === id);
+  if (!row) return;
+  row[field] = value;
+  const fieldMap = { beat:'Beat', folder:'Folder', path:'Path', pri:'Priority', status:'Status', notes:'Notes' };
+  debounceUpdate(id, { [fieldMap[field]]: value });
+}
+
+async function cycleStatus(id) {
+  const row = data.find(d => d._id === id);
+  if (!row) return;
+  const seq = ['unchecked','pulled','flagged','skip'];
+  row.status = seq[(seq.indexOf(row.status) + 1) % seq.length];
+  render();
+  await patchRecord(id, { Status: row.status });
+}
+
+async function cyclePri(id) {
+  const row = data.find(d => d._id === id);
+  if (!row) return;
+  const seq = ['high','med','low'];
+  row.pri = seq[(seq.indexOf(row.pri) + 1) % seq.length];
+  render();
+  await patchRecord(id, { Priority: row.pri });
+}
+
+async function deleteRow(id) {
+  if (!confirm('Remove this row?')) return;
+  data = data.filter(d => d._id !== id);
+  render();
+  await deleteRecord(id);
+}
+
+async function addRow() {
+  const beat = currentFilter !== 'all' ? currentFilter : 'new';
+  const newRow = { beat, folder:'', path:'', pri:'med', status:'unchecked', notes:'', isNew:true };
+  const airtableId = await createRecord(newRow);
+  newRow._id = airtableId;
+  data.push(newRow);
+  render();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.edit-text');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 60);
+}
+
+// ── Import ─────────────────────────────────────────────────────────────────
+
+async function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+    const msg = document.getElementById('import-msg');
+    let added = 0;
+    for (const line of lines) {
+      const parts = line.split('/');
+      const folder = (parts[parts.length-1] || parts[parts.length-2] || '').trim();
+      if (!folder || folder.length < 2) continue;
+      if (data.find(d => d.folder.toLowerCase() === folder.toLowerCase())) continue;
+      const row = { beat:'new', folder, path:parts.slice(-4,-1).join(' / ') || line, pri:'med', status:'unchecked', notes:'', isNew:true };
+      const id = await createRecord(row);
+      row._id = id;
+      data.push(row);
+      added++;
+    }
+    if (!added) {
+      msg.className = 'err'; msg.textContent = 'No new folders found — all entries already exist or file was empty.';
+    } else {
+      msg.className = 'ok'; msg.textContent = added + ' folders imported. Switch to "New" filter to review.';
+      currentFilter = 'new';
+      document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.textContent.trim() === 'New'));
+    }
+    msg.style.display = 'block';
+    render();
+  };
+  reader.readAsText(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  handleFile(e.dataTransfer.files[0]);
+}
+
+// ── UI ─────────────────────────────────────────────────────────────────────
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function copyCmd(id, btn) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent)
+    .then(() => { btn.textContent = 'copied ✓'; setTimeout(() => btn.textContent = 'copy', 1500); });
+}
+
+function sLabel(s) {
+  return { pulled:'pulled ✓', flagged:'flagged ⚑', skip:'skip', unchecked:'unchecked' }[s] || 'unchecked';
+}
+
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const visBeats = currentFilter === 'all' ? BEATS : BEATS.filter(b => b.id === currentFilter);
+
+  const pulled  = data.filter(d => d.status === 'pulled').length;
+  const flagged = data.filter(d => d.status === 'flagged').length;
+  const skip    = data.filter(d => d.status === 'skip').length;
+  const newC    = data.filter(d => d.isNew).length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><strong>${data.length}</strong>total</div>
+    <div class="stat"><strong style="color:#7ed37e">${pulled}</strong>pulled</div>
+    <div class="stat"><strong style="color:#fbbf24">${flagged}</strong>flagged</div>
+    <div class="stat"><strong style="color:#888">${skip}</strong>skip</div>
+    ${newC ? `<div class="stat"><strong style="color:#5eead4">${newC}</strong>imported</div>` : ''}
+    <div class="stat"><strong>${data.length - pulled - flagged - skip}</strong>unchecked</div>
+  `;
+
+  let html = '';
+  visBeats.forEach(beat => {
+    let rows = data.filter(d => d.beat === beat.id);
+    if (q) rows = rows.filter(d =>
+      d.folder.toLowerCase().includes(q) ||
+      d.path.toLowerCase().includes(q) ||
+      d.notes.toLowerCase().includes(q)
+    );
+    if (!rows.length) return;
+
+    html += `<div class="beat-section">
+      <div class="beat-header" style="border-left:3px solid ${beat.tc}">
+        <span class="beat-badge" style="background:${beat.bg};color:${beat.tc}">${beat.num}</span>
+        <span class="beat-label">${beat.label}</span>
+        <span class="beat-count">${rows.length} folders</span>
+      </div>
+      <div class="table-wrap">
+        <div class="trow thead">
+          <div class="tcell">Folder / path</div>
+          <div class="tcell">Beat</div>
+          <div class="tcell">Priority</div>
+          <div class="tcell">Status</div>
+          <div class="tcell">Notes</div>
+          <div class="tcell"></div>
+        </div>`;
+
+    rows.forEach(r => {
+      const sel = BEATS.map(b =>
+        `<option value="${b.id}"${b.id === r.beat ? ' selected' : ''}>${b.num} ${b.label.split('—')[0].trim()}</option>`
+      ).join('');
+
+      html += `<div class="trow">
+        <div class="tcell"><div class="cell-stack">
+          <input class="edit-text" value="${esc(r.folder)}" placeholder="Folder name"
+            onchange="updateField('${r._id}','folder',this.value)">
+          <input class="sub-text" value="${esc(r.path)}" placeholder="path / location"
+            onchange="updateField('${r._id}','path',this.value)">
+        </div></div>
+        <div class="tcell">
+          <select class="beat-select" onchange="updateField('${r._id}','beat',this.value);render()">${sel}</select>
+        </div>
+        <div class="tcell">
+          <button class="pri-btn pri-${r.pri}" onclick="cyclePri('${r._id}')">${r.pri}</button>
+        </div>
+        <div class="tcell">
+          <button class="status-btn ${r.status}" onclick="cycleStatus('${r._id}')">${sLabel(r.status)}</button>
+        </div>
+        <div class="tcell">
+          <textarea class="note-ta" placeholder="add note..."
+            onchange="updateField('${r._id}','notes',this.value)" rows="2">${esc(r.notes)}</textarea>
+        </div>
+        <div class="tcell" style="padding:4px">
+          <button class="del-btn" onclick="deleteRow('${r._id}')" title="Remove">×</button>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  if (!html) html = `<div class="empty">No folders match this filter.</div>`;
+  document.getElementById('content').innerHTML = html;
+}
+
+loadFromAirtable();
+</script>
+</body>
+</html>
