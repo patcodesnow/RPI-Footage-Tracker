@@ -73,6 +73,7 @@ exports.handler = async (event) => {
     const lookup = {};
     for (const row of analyzed) lookup[row.folder] = row;
 
+    const atHeaders = { 'Authorization': `Bearer ${AT_TOKEN}`, 'Content-Type': 'application/json' };
     let saved = 0;
     let firstError = null;
 
