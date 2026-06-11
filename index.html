@@ -261,7 +261,7 @@ async function clearAll(){
 
 function parseTxt(text){
   const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
-  const out=[],seen=new Set(data.map(d=>d.folder.toLowerCase()));
+  const out=[],seen=new Set(data.map(d=>(d.folder+'|'+d.path).toLowerCase()));
   lines.forEach(line=>{
     const parts=line.split('/');
     const folder=(parts[parts.length-1]||parts[parts.length-2]||'').trim();
@@ -269,9 +269,11 @@ function parseTxt(text){
     if(folder.toLowerCase().endsWith('.prv'))return;
     if(folder.startsWith('.'))return;
     if(/^gems_\d{6}/i.test(folder))return;
-    if(seen.has(folder.toLowerCase()))return;
-    seen.add(folder.toLowerCase());
-    out.push({folder,path:parts.slice(-4,-1).join(' / ')||line});
+    const path=parts.slice(-4,-1).join(' / ')||line;
+    const key=(folder+'|'+path).toLowerCase();
+    if(seen.has(key))return;
+    seen.add(key);
+    out.push({folder,path});
   });
   return out;
 }
