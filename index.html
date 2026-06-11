@@ -154,6 +154,7 @@ footer{border-top:1px solid rgba(255,255,255,.07);padding:1.25rem;text-align:cen
       <input type="text" id="search" placeholder="Search..." oninput="render()">
     </div>
     <button class="add-btn" onclick="addRow()">+ Add folder</button>
+    <button class="add-btn" id="clear-btn" style="border-color:rgba(196,18,48,.4);color:rgba(196,18,48,.6)" onclick="clearAll()">Clear all</button>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -325,6 +326,26 @@ async function addRow() {
     const inputs = document.querySelectorAll('.edit-text');
     if (inputs.length) inputs[inputs.length-1].focus();
   }, 60);
+}
+
+async function clearAll() {
+  if (!data.length) return;
+  if (!confirm(`Delete all ${data.length} records from Airtable? This cannot be undone.`)) return;
+  const btn = document.getElementById('clear-btn');
+  if (btn) { btn.textContent = 'Clearing...'; btn.disabled = true; }
+  setSyncState('syncing', 'clearing...');
+  try {
+    for (const row of [...data]) {
+      await deleteRecord(row._id);
+    }
+    data = [];
+    setSyncState('ok', 'cleared');
+    if (btn) { btn.textContent = 'Clear all'; btn.disabled = false; }
+    render();
+  } catch (e) {
+    setSyncState('err', 'clear failed');
+    if (btn) { btn.textContent = 'Clear all'; btn.disabled = false; }
+  }
 }
 
 // ── TXT Import with Claude analysis ───────────────────────────────────────
