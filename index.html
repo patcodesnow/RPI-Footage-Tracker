@@ -261,18 +261,12 @@ async function clearAll(){
 
 function parseTxt(text){
   const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
-  const out=[],seen=new Set(data.map(d=>(d.folder+'|'+d.path).toLowerCase()));
+  const out=[];
   lines.forEach(line=>{
     const parts=line.split('/');
     const folder=(parts[parts.length-1]||parts[parts.length-2]||'').trim();
     if(!folder||folder.length<2)return;
-    if(folder.toLowerCase().endsWith('.prv'))return;
-    if(folder.startsWith('.'))return;
-    if(/^gems_\d{6}/i.test(folder))return;
     const path=parts.slice(-4,-1).join(' / ')||line;
-    const key=(folder+'|'+path).toLowerCase();
-    if(seen.has(key))return;
-    seen.add(key);
     out.push({folder,path});
   });
   return out;
@@ -349,7 +343,6 @@ function render(){
     <div class="stat"><strong style="color:#7ed37e">${pulled}</strong>pulled</div>
     <div class="stat"><strong style="color:#fbbf24">${flagged}</strong>flagged</div>
     <div class="stat"><strong style="color:#888">${skip}</strong>skip</div>
-    ${ai?`<div class="stat"><strong style="color:#a78bfa">${ai}</strong>ai-assigned</div>`:''}
     <div class="stat"><strong>${data.length-pulled-flagged-skip}</strong>unchecked</div>
   `;
   let html='';
@@ -382,7 +375,6 @@ function render(){
         <div class="cell"><button class="sbtn ${r.status}" onclick="cycleStatus('${r._id}')">${sl(r.status)}</button></div>
         <div class="cell">
           <textarea class="note" placeholder="add note..." onchange="dbu('${r._id}','notes',this.value)" rows="2">${esc(r.notes)}</textarea>
-          ${r.isAI?'<span class="ai-lbl">✦ ai suggested</span>':''}
         </div>
         <div class="cell" style="padding:4px"><button class="delbtn" onclick="delRow('${r._id}')">×</button></div>
       </div>`;
