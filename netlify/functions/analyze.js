@@ -73,13 +73,12 @@ exports.handler = async (event) => {
     const lookup = {};
     for (const row of analyzed) lookup[row.folder] = row;
 
-    // Write EVERY input folder — use Claude's beat/notes where available, fallback to new
-    const atHeaders = { 'Authorization': `Bearer ${AT_TOKEN}`, 'Content-Type': 'application/json' };
     let saved = 0;
+    let firstError = null;
 
     for (const f of folders) {
       const claude = lookup[f.folder] || {};
-      await fetch(AT_API, {
+      const atRes = await fetch(AT_API, {
         method: 'POST',
         headers: atHeaders,
         body: JSON.stringify({
@@ -94,13 +93,19 @@ exports.handler = async (event) => {
           }
         })
       });
-      saved++;
+      const atJson = await atRes.json();
+      if (atJson.error) {
+        console.error('Airtable write error:', JSON.stringify(atJson.error));
+        if (!firstError) firstError = atJson.error;
+      } else {
+        saved++;
+      }
     }
 
     return {
       statusCode: 200,
       headers: { ...cors, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ saved, total: analyzed.length }),
+      body: JSON.stringify({ saved, total: analyzed.length, error: firstError }),
     };
 
   } catch (err) {
