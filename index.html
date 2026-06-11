@@ -9,539 +9,389 @@
 body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#111;color:#fff;min-height:100vh;font-size:13px}
 header{background:#C41230;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200}
 .logo{font-size:12px;font-weight:700;letter-spacing:.12em}
-.header-right{display:flex;align-items:center;gap:10px;font-size:10px;color:rgba(255,255,255,.6);letter-spacing:.07em}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .3s;flex-shrink:0}
-.sync-dot.syncing{background:#fbbf24}
-.sync-dot.ok{background:#7ed37e}
-.sync-dot.err{background:#f87171}
+.hright{display:flex;align-items:center;gap:10px;font-size:10px;color:rgba(255,255,255,.65);letter-spacing:.07em}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .3s}
+.dot.ok{background:#7ed37e}.dot.err{background:#f87171}.dot.busy{background:#fbbf24}
 .main{max-width:1300px;margin:0 auto;padding:1.5rem}
 .import-zone{border:1px dashed rgba(255,255,255,.18);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;background:rgba(255,255,255,.03)}
 .import-zone h3{font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:.75rem}
-.cmd-block{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.6rem 1rem;font-family:'Courier New',monospace;font-size:11px;color:#7dd3b0;margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.cmd-block span{flex:1;word-break:break-all}
-.copy-btn{font-size:10px;padding:3px 8px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:4px;color:rgba(255,255,255,.45);cursor:pointer;white-space:nowrap;flex-shrink:0}
-.copy-btn:hover{color:#fff;border-color:rgba(255,255,255,.5)}
-.drop-zone{border:1px dashed rgba(255,255,255,.15);border-radius:6px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;margin-top:.6rem;position:relative;min-height:90px;display:flex;align-items:center;justify-content:center}
-.drop-zone:hover,.drop-zone.drag{border-color:#C41230;background:rgba(196,18,48,.07)}
-.drop-zone.analyzing{border-color:#fbbf24;background:rgba(251,191,36,.04);cursor:default;pointer-events:none}
-.drop-inner{display:flex;flex-direction:column;align-items:center;gap:6px}
-.drop-icon{font-size:22px;opacity:.3}
-.drop-zone p{font-size:11px;color:rgba(255,255,255,.35)}
-.analyzing-wrap{display:none;flex-direction:column;align-items:center;gap:8px}
-.drop-zone.analyzing .drop-inner{display:none}
-.drop-zone.analyzing .analyzing-wrap{display:flex}
-.spinner{width:22px;height:22px;border:2px solid rgba(251,191,36,.25);border-top-color:#fbbf24;border-radius:50%;animation:spin .8s linear infinite}
+.cmd{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.6rem 1rem;font-family:'Courier New',monospace;font-size:11px;color:#7dd3b0;margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.cmd span{flex:1;word-break:break-all}
+.copybtn{font-size:10px;padding:3px 8px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:4px;color:rgba(255,255,255,.45);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.copybtn:hover{color:#fff;border-color:rgba(255,255,255,.5)}
+.dropzone{border:1px dashed rgba(255,255,255,.15);border-radius:6px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;margin-top:.6rem;min-height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;position:relative}
+.dropzone:hover,.dropzone.drag{border-color:#C41230;background:rgba(196,18,48,.06)}
+.dropzone.busy{border-color:#fbbf24;background:rgba(251,191,36,.04);cursor:default;pointer-events:none}
+.drop-p{font-size:11px;color:rgba(255,255,255,.35)}
+.progress-wrap{display:none;flex-direction:column;align-items:center;gap:8px;width:100%}
+.dropzone.busy .drop-default{display:none}
+.dropzone.busy .progress-wrap{display:flex}
+.spinner{width:20px;height:20px;border:2px solid rgba(251,191,36,.2);border-top-color:#fbbf24;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.analyzing-text{font-size:12px;color:#fbbf24;font-weight:500}
-.analyzing-sub{font-size:10px;color:rgba(251,191,36,.55)}
-.progress-bar-wrap{width:220px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
-.progress-bar{height:100%;background:#fbbf24;border-radius:2px;transition:width .4s ease}
-#import-msg{margin-top:8px;font-size:11px;padding:6px 10px;border-radius:4px;display:none;line-height:1.5}
-#import-msg.ok{background:#eaf3de;color:#3b6d11;display:block}
-#import-msg.err{background:#fce8e8;color:#a32d2d;display:block}
-#import-msg.info{background:rgba(251,191,36,.12);color:#fbbf24;display:block;border:1px solid rgba(251,191,36,.25)}
+.prog-text{font-size:12px;color:#fbbf24;font-weight:500}
+.prog-sub{font-size:10px;color:rgba(251,191,36,.55)}
+.prog-bar-wrap{width:240px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.prog-bar{height:100%;background:#fbbf24;border-radius:2px;transition:width .3s}
+#msg{margin-top:8px;font-size:11px;padding:6px 10px;border-radius:4px;display:none;line-height:1.5}
+#msg.ok{background:#eaf3de;color:#3b6d11;display:block}
+#msg.err{background:#fce8e8;color:#a32d2d;display:block}
+#msg.info{background:rgba(251,191,36,.12);color:#fbbf24;display:block;border:1px solid rgba(251,191,36,.2)}
 .controls{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
 .filters{display:flex;gap:5px;flex-wrap:wrap;flex:1}
 .pill{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.45);cursor:pointer;transition:all .15s}
 .pill:hover{border-color:rgba(255,255,255,.4);color:#fff}
 .pill.active{background:#fff;color:#111;border-color:#fff}
-.search-wrap{position:relative}
-.search-wrap input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 10px 6px 28px;font-size:11px;color:#fff;width:180px;outline:none}
-.search-wrap input::placeholder{color:rgba(255,255,255,.25)}
-.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.35;pointer-events:none}
-.add-btn{font-size:11px;padding:5px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);cursor:pointer;white-space:nowrap}
-.add-btn:hover{background:rgba(255,255,255,.1);color:#fff}
-.danger-btn{font-size:11px;padding:5px 14px;border-radius:6px;border:1px solid rgba(196,18,48,.35);background:transparent;color:rgba(196,18,48,.6);cursor:pointer;white-space:nowrap}
-.danger-btn:hover{background:rgba(196,18,48,.1);color:#C41230}
+.srch{position:relative}
+.srch input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 10px 6px 28px;font-size:11px;color:#fff;width:180px;outline:none}
+.srch input::placeholder{color:rgba(255,255,255,.25)}
+.srch-ic{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.35;pointer-events:none}
+.btn{font-size:11px;padding:5px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);cursor:pointer;white-space:nowrap}
+.btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.btn-danger{border-color:rgba(196,18,48,.35);color:rgba(196,18,48,.6)}
+.btn-danger:hover{background:rgba(196,18,48,.1);color:#C41230}
 .stats{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
 .stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:7px 12px;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.04em}
 .stat strong{font-size:18px;font-weight:500;display:block;line-height:1.1}
 .beat-section{margin-bottom:1.5rem}
-.beat-header{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:6px 6px 0 0;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08)}
+.beat-hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:6px 6px 0 0;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08)}
 .beat-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.05em}
-.beat-label{font-size:12px;font-weight:500}
-.beat-count{margin-left:auto;font-size:10px;color:rgba(255,255,255,.35)}
-.table-wrap{border:1px solid rgba(255,255,255,.08);border-top:none;border-radius:0 0 6px 6px;overflow:hidden}
-.trow{display:grid;grid-template-columns:2.1fr 1.3fr .6fr .75fr 1.7fr 28px;border-bottom:1px solid rgba(255,255,255,.06);align-items:stretch;min-height:42px}
-.trow:last-child{border-bottom:none}
-.trow.thead{background:rgba(255,255,255,.03);min-height:30px}
-.trow:not(.thead):hover{background:rgba(255,255,255,.025)}
-.tcell{padding:7px 10px;display:flex;align-items:center}
-.thead .tcell{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.08em;text-transform:uppercase}
-.edit-text{background:transparent;border:none;font-size:11px;font-family:inherit;color:#fff;width:100%;outline:none;padding:0}
-.edit-text::placeholder{color:rgba(255,255,255,.2)}
-.sub-text{font-size:10px;color:rgba(255,255,255,.3);font-family:'Courier New',monospace;width:100%;background:transparent;border:none;outline:none;padding:0;margin-top:3px}
-.sub-text::placeholder{color:rgba(255,255,255,.15)}
-.cell-stack{display:flex;flex-direction:column;width:100%}
-.ai-label{font-size:9px;color:rgba(167,139,250,.5);display:block;margin-top:2px}
-.pri-btn{font-size:10px;padding:2px 8px;border-radius:10px;border:none;cursor:pointer;font-weight:500;white-space:nowrap}
-.pri-high{background:#faeeda;color:#854f0b}
-.pri-med{background:#e6f1fb;color:#185fa5}
-.pri-low{background:#f1efe8;color:#5f5e5a}
-.beat-select{background:transparent;border:none;font-size:10px;color:rgba(255,255,255,.5);outline:none;cursor:pointer;width:100%;font-family:inherit}
-.beat-select option{background:#222;color:#fff}
-.status-btn{font-size:10px;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;white-space:nowrap;transition:all .15s;width:100%}
-.status-btn.pulled{background:#eaf3de;color:#3b6d11;border-color:#c0dd97}
-.status-btn.flagged{background:#faeeda;color:#854f0b;border-color:#fac775}
-.status-btn.skip{background:#f1efe8;color:#5f5e5a;border-color:#d3d1c7;text-decoration:line-through}
-.note-ta{width:100%;background:transparent;border:none;font-size:11px;font-family:inherit;color:rgba(255,255,255,.6);resize:none;outline:none;line-height:1.5;min-height:36px}
-.note-ta::placeholder{color:rgba(255,255,255,.18)}
-.note-ta:focus{color:#fff}
-.del-btn{background:transparent;border:none;color:rgba(255,255,255,.15);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
-.del-btn:hover{color:#C41230}
+.beat-lbl{font-size:12px;font-weight:500}
+.beat-cnt{margin-left:auto;font-size:10px;color:rgba(255,255,255,.35)}
+.table{border:1px solid rgba(255,255,255,.08);border-top:none;border-radius:0 0 6px 6px;overflow:hidden}
+.row{display:grid;grid-template-columns:2.1fr 1.3fr .6fr .75fr 1.7fr 28px;border-bottom:1px solid rgba(255,255,255,.06);align-items:stretch;min-height:42px}
+.row:last-child{border-bottom:none}
+.row.head{background:rgba(255,255,255,.03);min-height:30px}
+.row:not(.head):hover{background:rgba(255,255,255,.025)}
+.cell{padding:7px 10px;display:flex;align-items:center}
+.head .cell{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.08em;text-transform:uppercase}
+.fi{background:transparent;border:none;font-size:11px;font-family:inherit;color:#fff;width:100%;outline:none;padding:0}
+.fi::placeholder{color:rgba(255,255,255,.2)}
+.fp{font-size:10px;color:rgba(255,255,255,.3);font-family:'Courier New',monospace;width:100%;background:transparent;border:none;outline:none;padding:0;margin-top:3px}
+.fp::placeholder{color:rgba(255,255,255,.15)}
+.fstack{display:flex;flex-direction:column;width:100%}
+.ai-lbl{font-size:9px;color:rgba(167,139,250,.5);display:block;margin-top:2px}
+.pri{font-size:10px;padding:2px 8px;border-radius:10px;border:none;cursor:pointer;font-weight:500;white-space:nowrap}
+.pri.high{background:#faeeda;color:#854f0b}
+.pri.med{background:#e6f1fb;color:#185fa5}
+.pri.low{background:#f1efe8;color:#5f5e5a}
+.bsel{background:transparent;border:none;font-size:10px;color:rgba(255,255,255,.5);outline:none;cursor:pointer;width:100%;font-family:inherit}
+.bsel option{background:#222;color:#fff}
+.sbtn{font-size:10px;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;white-space:nowrap;transition:all .15s;width:100%}
+.sbtn.pulled{background:#eaf3de;color:#3b6d11;border-color:#c0dd97}
+.sbtn.flagged{background:#faeeda;color:#854f0b;border-color:#fac775}
+.sbtn.skip{background:#f1efe8;color:#5f5e5a;border-color:#d3d1c7;text-decoration:line-through}
+.note{width:100%;background:transparent;border:none;font-size:11px;font-family:inherit;color:rgba(255,255,255,.6);resize:none;outline:none;line-height:1.5;min-height:36px}
+.note::placeholder{color:rgba(255,255,255,.18)}
+.note:focus{color:#fff}
+.delbtn{background:transparent;border:none;color:rgba(255,255,255,.15);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.delbtn:hover{color:#C41230}
 .empty{text-align:center;padding:3rem;color:rgba(255,255,255,.2);font-size:12px}
-.loading-state{text-align:center;padding:3rem;color:rgba(255,255,255,.3);font-size:12px}
 footer{border-top:1px solid rgba(255,255,255,.07);padding:1.25rem;text-align:center;font-size:10px;color:rgba(255,255,255,.15);letter-spacing:.08em;margin-top:2rem}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">COLLECTIVEFFORT × RPI</div>
-  <div class="header-right">
-    <span id="sync-label">loading...</span>
-    <span class="sync-dot" id="sync-dot"></span>
+  <div class="hright">
+    <span id="slbl">loading...</span>
+    <span class="dot" id="sdot"></span>
     <span>SIZZLE REEL — FOOTAGE TRACKER</span>
   </div>
 </header>
-
 <div class="main">
-
   <div class="import-zone">
     <h3>Add footage — generate folder log in Terminal, drop below</h3>
-    <div class="cmd-block">
+    <div class="cmd">
       <span id="cmd1">find /Volumes/Peace/Public/RPI\ Marketing -maxdepth 4 -type d > ~/Desktop/folder_log.txt</span>
-      <button class="copy-btn" onclick="copyCmd('cmd1',this)">copy</button>
+      <button class="copybtn" onclick="copyCmd()">copy</button>
     </div>
-    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:.6rem">
-      Swap path to match any drive. Run in Terminal → saves to Desktop → drop below.<br>
-      Claude analyzes each folder and assigns beats based on the treatment structure. Duplicates skipped automatically.
-    </div>
-    <div class="drop-zone" id="drop-zone"
-      onclick="if(!isAnalyzing)document.getElementById('file-in').click()"
-      ondragover="event.preventDefault();if(!isAnalyzing)this.classList.add('drag')"
+    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:.6rem">Swap path to match any drive. Run in Terminal → saves to Desktop → drop below. Claude analyzes each folder and assigns beats. Duplicates skipped.</div>
+    <div class="dropzone" id="dz"
+      onclick="if(!busy)document.getElementById('fi').click()"
+      ondragover="event.preventDefault();if(!busy)this.classList.add('drag')"
       ondragleave="this.classList.remove('drag')"
-      ondrop="handleDrop(event)">
-      <div class="drop-inner">
-        <div class="drop-icon">↑</div>
-        <p>Drop .txt folder log here or click to browse</p>
+      ondrop="onDrop(event)">
+      <div class="drop-default">
+        <div style="font-size:22px;opacity:.3">↑</div>
+        <p class="drop-p">Drop .txt folder log here or click to browse</p>
       </div>
-      <div class="analyzing-wrap">
+      <div class="progress-wrap">
         <div class="spinner"></div>
-        <div class="analyzing-text" id="analyzing-text">Analyzing folders...</div>
-        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
-        <div class="analyzing-sub" id="analyzing-sub">Claude is reading your footage structure</div>
+        <div class="prog-text" id="ptxt">Analyzing...</div>
+        <div class="prog-bar-wrap"><div class="prog-bar" id="pbar" style="width:0%"></div></div>
+        <div class="prog-sub" id="psub"></div>
       </div>
     </div>
-    <input type="file" id="file-in" accept=".txt" style="display:none" onchange="handleFile(this.files[0])">
-    <div id="import-msg"></div>
+    <input type="file" id="fi" accept=".txt" style="display:none" onchange="onFile(this.files[0])">
+    <div id="msg"></div>
   </div>
-
   <div class="controls">
     <div class="filters">
-      <button class="pill active" onclick="setFilter('all',this)">All</button>
-      <button class="pill" onclick="setFilter('hook',this)">⚡ Hook</button>
-      <button class="pill" onclick="setFilter('b01',this)">01</button>
-      <button class="pill" onclick="setFilter('b02',this)">02</button>
-      <button class="pill" onclick="setFilter('b03',this)">03</button>
-      <button class="pill" onclick="setFilter('b04',this)">04</button>
-      <button class="pill" onclick="setFilter('b05',this)">05</button>
-      <button class="pill" onclick="setFilter('tbd',this)">TBD / Rights</button>
-      <button class="pill" onclick="setFilter('new',this)">Unassigned</button>
+      <button class="pill active" onclick="setF('all',this)">All</button>
+      <button class="pill" onclick="setF('hook',this)">⚡ Hook</button>
+      <button class="pill" onclick="setF('b01',this)">01</button>
+      <button class="pill" onclick="setF('b02',this)">02</button>
+      <button class="pill" onclick="setF('b03',this)">03</button>
+      <button class="pill" onclick="setF('b04',this)">04</button>
+      <button class="pill" onclick="setF('b05',this)">05</button>
+      <button class="pill" onclick="setF('tbd',this)">TBD</button>
+      <button class="pill" onclick="setF('new',this)">Unassigned</button>
     </div>
-    <div class="search-wrap">
-      <span class="search-icon">⌕</span>
-      <input type="text" id="search" placeholder="Search..." oninput="render()">
-    </div>
-    <button class="add-btn" onclick="addRow()">+ Add folder</button>
-    <button class="danger-btn" id="clear-btn" onclick="clearAll()">Clear all</button>
+    <div class="srch"><span class="srch-ic">⌕</span><input type="text" id="sq" placeholder="Search..." oninput="render()"></div>
+    <button class="btn" onclick="addRow()">+ Add</button>
+    <button class="btn btn-danger" id="clrbtn" onclick="clearAll()">Clear all</button>
   </div>
-
   <div class="stats" id="stats"></div>
-  <div id="content"><div class="loading-state">Loading...</div></div>
-
+  <div id="content"><div class="empty">Loading...</div></div>
 </div>
-
 <footer>COLLECTIVEFFORT × RPI &nbsp;·&nbsp; SIZZLE REEL &nbsp;·&nbsp; 2026</footer>
 
 <script>
-// ── Config ─────────────────────────────────────────────────────────────────
-const AT_API       = '/.netlify/functions/airtable';
-const CLAUDE_API   = 'https://api.anthropic.com/v1/messages';
-const CLAUDE_KEY   = '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';
-const CHUNK_SIZE   = 35;
-
-const SYSTEM_PROMPT = `You are an expert video editor and creative director working on a brand sizzle reel for Rensselaer Polytechnic Institute (RPI). Analyze footage folder names and assign each to the correct beat.
-
-BEATS:
-hook — Stops someone mid-scroll. Kinetic movement, drones, sports, formula cars, fast action, athletic energy, machinery in motion. High priority if it has speed or movement.
-b01 — World established. Wide campus shots, drone, city views, architecture, RPI signage, overlooks.
-b02 — Inventive Curiosity (5-15s). Labs, hands on prototypes, engineering workspaces, The Forge, The MILL, CBIS, computer science, architecture studio, B-Roll from named person segments (people doing work).
-b03 — Collaboration (15-25s). Establishing shots from named person segments (portraits/intros), classrooms, clubs, student orgs, engineering ambassadors, group moments, mentorship.
-b04 — Life + Troy (25-35s). Hockey, football, athletics, Troy NY, farmers market, downtown, campus life, hammocks, a dog, leisure moments.
-b05 — Inspired/Payoff (35-45s). Alumni segments, entrepreneurship, Velan Studios, Karthik Bala, brand VFX, title sequences, exports, lower thirds.
-tbd — Anything inside GEMS/ folder. Rights unconfirmed, do not pull without clearance.
-skip — Internal project files only: .PRV files, Adobe Premiere Audio/Video Previews, Auto-Save, Render Files, Proxy Media, Transcoded Media, .lock-dir, __Temp, DCIM, AUDIO, MISC, CARD_1/2/3, raw camera card subfolders.
-
-PRIORITY: high = clear editorial value. med = needs review. low = backup/weak fit.
-NOTES: One sentence max. Be specific about what to look for or why it fits.
-
-Return ONLY a valid JSON array, no markdown:
-[{"folder":"name","beat":"hook|b01|b02|b03|b04|b05|tbd|skip","priority":"high|med|low","notes":"note"}]`;
+const AT  = '/.netlify/functions/airtable';
+const ANL = '/.netlify/functions/analyze';
+const CHUNK = 25;
 
 const BEATS = [
-  {id:'hook',label:'⚡ Hook candidates',              num:'⚡',bg:'#3d1a00',tc:'#fb923c'},
-  {id:'b01', label:'01 — World Est. (0-5s)',           num:'01',bg:'#3d0a11',tc:'#f87171'},
-  {id:'b02', label:'02 — Inventive Curiosity (5-15s)', num:'02',bg:'#0c2a47',tc:'#7db8f0'},
-  {id:'b03', label:'03 — Collaboration (15-25s)',      num:'03',bg:'#0f2d0f',tc:'#7ed37e'},
-  {id:'b04', label:'04 — Life + Troy (25-35s)',        num:'04',bg:'#3d2000',tc:'#fbbf24'},
-  {id:'b05', label:'05 — Inspired / Payoff (35-45s)',  num:'05',bg:'#1e1245',tc:'#a78bfa'},
-  {id:'tbd', label:'TBD — Pending rights (GEMS)',      num:'?', bg:'#222',  tc:'#888'},
-  {id:'new', label:'Unassigned — needs review',        num:'—', bg:'#1a1a1a',tc:'#666'},
+  {id:'hook',l:'⚡ Hook candidates',            n:'⚡',bg:'#3d1a00',tc:'#fb923c'},
+  {id:'b01', l:'01 — World Est. (0-5s)',          n:'01',bg:'#3d0a11',tc:'#f87171'},
+  {id:'b02', l:'02 — Inventive Curiosity (5-15s)',n:'02',bg:'#0c2a47',tc:'#7db8f0'},
+  {id:'b03', l:'03 — Collaboration (15-25s)',     n:'03',bg:'#0f2d0f',tc:'#7ed37e'},
+  {id:'b04', l:'04 — Life + Troy (25-35s)',       n:'04',bg:'#3d2000',tc:'#fbbf24'},
+  {id:'b05', l:'05 — Inspired / Payoff (35-45s)', n:'05',bg:'#1e1245',tc:'#a78bfa'},
+  {id:'tbd', l:'TBD — Pending rights (GEMS)',     n:'?', bg:'#222',   tc:'#888'},
+  {id:'new', l:'Unassigned — needs review',       n:'—', bg:'#1a1a1a',tc:'#666'},
 ];
 
-let data = [];
-let currentFilter = 'all';
-let isAnalyzing = false;
-let debounceTimers = {};
+let data=[], filter='all', busy=false, timers={};
 
-// ── Sync UI ────────────────────────────────────────────────────────────────
-function setSyncState(state, label) {
-  const dot = document.getElementById('sync-dot');
-  const lbl = document.getElementById('sync-label');
-  if (dot) dot.className = 'sync-dot ' + state;
-  if (lbl) lbl.textContent = label;
+function ss(state,lbl){
+  const d=document.getElementById('sdot'),l=document.getElementById('slbl');
+  if(d)d.className='dot '+state; if(l)l.textContent=lbl;
 }
 
-function setProgress(pct, text, sub) {
-  const dz  = document.getElementById('drop-zone');
-  const bar = document.getElementById('progress-bar');
-  const txt = document.getElementById('analyzing-text');
-  const sub_ = document.getElementById('analyzing-sub');
-  dz.classList.toggle('analyzing', pct < 100 && isAnalyzing);
-  if (bar) bar.style.width = pct + '%';
-  if (txt && text) txt.textContent = text;
-  if (sub_ && sub) sub_.textContent = sub;
+function sp(pct,txt,sub){
+  const dz=document.getElementById('dz');
+  dz.classList.toggle('busy',pct<100&&busy);
+  const b=document.getElementById('pbar');if(b)b.style.width=pct+'%';
+  const t=document.getElementById('ptxt');if(t&&txt)t.textContent=txt;
+  const s=document.getElementById('psub');if(s&&sub!==undefined)s.textContent=sub;
 }
 
-// ── Airtable ───────────────────────────────────────────────────────────────
-async function loadFromAirtable() {
-  setSyncState('syncing', 'loading...');
-  try {
-    const res     = await fetch(AT_API);
-    const records = await res.json();
-    if (!Array.isArray(records)) throw new Error('Bad response');
-    data = records
-      .filter(r => r.fields && Object.keys(r.fields).length > 0)
-      .map(r => ({
-        _id:    r.id,
-        beat:   r.fields.Beat     || 'new',
-        folder: r.fields.Folder   || '',
-        path:   r.fields.Path     || '',
-        pri:    r.fields.Priority || 'med',
-        status: r.fields.Status   || 'unchecked',
-        notes:  r.fields.Notes    || '',
-        isAI:   r.fields.isAI     || false,
-      }));
-    setSyncState('ok', 'synced');
-    render();
-  } catch (e) {
-    setSyncState('err', 'error');
-    document.getElementById('content').innerHTML = `<div class="empty">Could not load from Airtable.</div>`;
+function msg(type,text){
+  const el=document.getElementById('msg');
+  el.className=type; el.textContent=text;
+}
+
+async function load(){
+  ss('busy','loading...');
+  try{
+    const res=await fetch(AT);
+    const recs=await res.json();
+    if(!Array.isArray(recs))throw new Error('Bad response');
+    data=recs.filter(r=>r.fields&&Object.keys(r.fields).length>0).map(r=>({
+      _id:r.id, beat:r.fields.Beat||'new', folder:r.fields.Folder||'',
+      path:r.fields.Path||'', pri:r.fields.Priority||'med',
+      status:r.fields.Status||'unchecked', notes:r.fields.Notes||'', isAI:r.fields.isAI||false,
+    }));
+    ss('ok','synced'); render();
+  }catch(e){
+    ss('err','error');
+    document.getElementById('content').innerHTML='<div class="empty">Could not load from Airtable.</div>';
   }
 }
 
-function toFields(row) {
-  return { Folder: row.folder||'', Path: row.path||'', Beat: row.beat||'new', Priority: row.pri||'med', Status: row.status||'unchecked', Notes: row.notes||'', isAI: row.isAI||false };
+function toF(r){return{Folder:r.folder||'',Path:r.path||'',Beat:r.beat||'new',Priority:r.pri||'med',Status:r.status||'unchecked',Notes:r.notes||'',isAI:r.isAI||false};}
+
+async function create(r){
+  const res=await fetch(AT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toF(r)})});
+  const j=await res.json(); if(j.error)throw new Error(j.error.message); return j.id;
 }
 
-async function createRecord(row) {
-  const res  = await fetch(AT_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ fields: toFields(row) }) });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  return json.id;
+async function patch(id,fields){
+  ss('busy','saving...');
+  try{await fetch(AT,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,fields})});ss('ok','saved');}
+  catch(e){ss('err','save failed');}
 }
 
-async function patchRecord(id, fields) {
-  setSyncState('syncing', 'saving...');
-  try {
-    await fetch(AT_API, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, fields }) });
-    setSyncState('ok', 'saved');
-  } catch(e) { setSyncState('err', 'save failed'); }
+async function del(id){await fetch(`${AT}?id=${id}`,{method:'DELETE'});}
+
+function dbu(id,field,val){
+  const r=data.find(d=>d._id===id);if(!r)return;
+  r[field]=val;
+  const map={beat:'Beat',folder:'Folder',path:'Path',pri:'Priority',status:'Status',notes:'Notes'};
+  clearTimeout(timers[id]);
+  timers[id]=setTimeout(()=>patch(id,{[map[field]]:val}),700);
 }
 
-async function deleteRecord(id) {
-  await fetch(`${AT_API}?id=${id}`, { method:'DELETE' });
+async function cycleStatus(id){
+  const r=data.find(d=>d._id===id);if(!r)return;
+  const s=['unchecked','pulled','flagged','skip'];
+  r.status=s[(s.indexOf(r.status)+1)%s.length];
+  render(); await patch(id,{Status:r.status});
 }
 
-function debounceUpdate(id, fields) {
-  clearTimeout(debounceTimers[id]);
-  debounceTimers[id] = setTimeout(() => patchRecord(id, fields), 700);
+async function cyclePri(id){
+  const r=data.find(d=>d._id===id);if(!r)return;
+  const s=['high','med','low'];
+  r.pri=s[(s.indexOf(r.pri)+1)%s.length];
+  render(); await patch(id,{Priority:r.pri});
 }
 
-function updateField(id, field, value) {
-  const row = data.find(d => d._id === id);
-  if (!row) return;
-  row[field] = value;
-  const map = { beat:'Beat', folder:'Folder', path:'Path', pri:'Priority', status:'Status', notes:'Notes' };
-  debounceUpdate(id, { [map[field]]: value });
+async function delRow(id){
+  if(!confirm('Remove this row?'))return;
+  data=data.filter(d=>d._id!==id); render(); await del(id);
 }
 
-async function cycleStatus(id) {
-  const row = data.find(d => d._id === id);
-  if (!row) return;
-  const seq = ['unchecked','pulled','flagged','skip'];
-  row.status = seq[(seq.indexOf(row.status)+1) % seq.length];
-  render();
-  await patchRecord(id, { Status: row.status });
+async function addRow(){
+  const beat=filter!=='all'?filter:'new';
+  const r={beat,folder:'',path:'',pri:'med',status:'unchecked',notes:'',isAI:false};
+  ss('busy','saving...'); const id=await create(r); r._id=id; data.push(r); ss('ok','saved'); render();
+  setTimeout(()=>{const els=document.querySelectorAll('.fi');if(els.length)els[els.length-1].focus();},60);
 }
 
-async function cyclePri(id) {
-  const row = data.find(d => d._id === id);
-  if (!row) return;
-  const seq = ['high','med','low'];
-  row.pri = seq[(seq.indexOf(row.pri)+1) % seq.length];
-  render();
-  await patchRecord(id, { Priority: row.pri });
+async function clearAll(){
+  if(!data.length)return;
+  if(!confirm(`Delete all ${data.length} records?`))return;
+  const btn=document.getElementById('clrbtn');
+  btn.textContent='Clearing...'; btn.disabled=true;
+  ss('busy','clearing...');
+  for(const r of [...data])await del(r._id);
+  data=[]; ss('ok','cleared'); btn.textContent='Clear all'; btn.disabled=false; render();
 }
 
-async function deleteRow(id) {
-  if (!confirm('Remove this row?')) return;
-  data = data.filter(d => d._id !== id);
-  render();
-  await deleteRecord(id);
-}
-
-async function addRow() {
-  const beat = currentFilter !== 'all' ? currentFilter : 'new';
-  const row  = { beat, folder:'', path:'', pri:'med', status:'unchecked', notes:'', isAI:false };
-  setSyncState('syncing', 'saving...');
-  const id = await createRecord(row);
-  row._id = id;
-  data.push(row);
-  setSyncState('ok', 'saved');
-  render();
-  setTimeout(() => { const inputs = document.querySelectorAll('.edit-text'); if(inputs.length) inputs[inputs.length-1].focus(); }, 60);
-}
-
-async function clearAll() {
-  if (!data.length) return;
-  if (!confirm(`Delete all ${data.length} records? This cannot be undone.`)) return;
-  const btn = document.getElementById('clear-btn');
-  if (btn) { btn.textContent = 'Clearing...'; btn.disabled = true; }
-  setSyncState('syncing', 'clearing...');
-  for (const row of [...data]) { await deleteRecord(row._id); }
-  data = [];
-  setSyncState('ok', 'cleared');
-  if (btn) { btn.textContent = 'Clear all'; btn.disabled = false; }
-  render();
-}
-
-// ── Claude analysis (client-side, no timeout) ──────────────────────────────
-async function analyzeChunk(folders) {
-  const folderList = folders.map(f => `- "${f.folder}" (path: ${f.path})`).join('\n');
-  const res = await fetch(CLAUDE_API, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': CLAUDE_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role:'user', content:`Analyze these footage folders. Mark GEMS/ content as tbd, internal project files as skip.\n\nFOLDERS:\n${folderList}\n\nReturn only the JSON array.` }]
-    })
-  });
-  if (!res.ok) throw new Error(`Claude API ${res.status}`);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-  const text  = json.content?.[0]?.text || '[]';
-  const clean = text.replace(/```json|```/g,'').trim();
-  return JSON.parse(clean);
-}
-
-function parseFolders(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-  const folders = [];
-  const seen = new Set(data.map(d => d.folder.toLowerCase()));
-  lines.forEach(line => {
-    const parts  = line.split('/');
-    const folder = (parts[parts.length-1] || parts[parts.length-2] || '').trim();
-    if (!folder || folder.length < 2) return;
-    if (folder.toLowerCase().endsWith('.prv')) return;
-    if (folder.startsWith('.')) return;
-    if (/^gems_\d{6}/i.test(folder)) return;
-    if (seen.has(folder.toLowerCase())) return;
+function parseTxt(text){
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+  const out=[],seen=new Set(data.map(d=>d.folder.toLowerCase()));
+  lines.forEach(line=>{
+    const parts=line.split('/');
+    const folder=(parts[parts.length-1]||parts[parts.length-2]||'').trim();
+    if(!folder||folder.length<2)return;
+    if(folder.toLowerCase().endsWith('.prv'))return;
+    if(folder.startsWith('.'))return;
+    if(/^gems_\d{6}/i.test(folder))return;
+    if(seen.has(folder.toLowerCase()))return;
     seen.add(folder.toLowerCase());
-    folders.push({ folder, path: parts.slice(-4,-1).join(' / ') || line });
+    out.push({folder,path:parts.slice(-4,-1).join(' / ')||line});
   });
-  return folders;
+  return out;
 }
 
-async function handleFile(file) {
-  if (!file || isAnalyzing) return;
-  const reader = new FileReader();
-  reader.onload = async e => {
-    const folders = parseFolders(e.target.result);
-    const msg = document.getElementById('import-msg');
+async function onFile(file){
+  if(!file||busy)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const folders=parseTxt(e.target.result);
+    if(!folders.length){msg('err','No new folders found — all entries already exist or file was empty.');return;}
 
-    if (!folders.length) {
-      msg.className = 'err';
-      msg.textContent = 'No new folders found — all entries already exist or file was empty.';
-      return;
-    }
+    busy=true;
+    sp(5,`Preparing ${folders.length} folders...`,'');
+    msg('info',`Sending ${folders.length} folders to Claude for analysis...`);
 
-    isAnalyzing = true;
-    setProgress(0, `Analyzing ${folders.length} folders...`, 'Claude is reading your footage structure');
-    msg.className = 'info';
-    msg.textContent = `Sending ${folders.length} folders to Claude in batches...`;
+    try{
+      // Split into chunks and call analyze function once per chunk
+      const chunks=[];
+      for(let i=0;i<folders.length;i+=CHUNK)chunks.push(folders.slice(i,i+CHUNK));
 
-    try {
-      const chunks = [];
-      for (let i = 0; i < folders.length; i += CHUNK_SIZE) chunks.push(folders.slice(i, i+CHUNK_SIZE));
+      let totalSaved=0;
+      for(let i=0;i<chunks.length;i++){
+        const pct=5+Math.round(((i)/chunks.length)*85);
+        sp(pct,`Analyzing batch ${i+1} of ${chunks.length}...`,`${totalSaved} folders saved so far`);
 
-      let allResults = [];
-      for (let i = 0; i < chunks.length; i++) {
-        setProgress(
-          Math.round((i / chunks.length) * 60),
-          `Analyzing batch ${i+1} of ${chunks.length}...`,
-          `${allResults.length} folders processed so far`
-        );
-        const results = await analyzeChunk(chunks[i]);
-        allResults = allResults.concat(results);
+        const res=await fetch(ANL,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({folders:chunks[i]})
+        });
+
+        if(!res.ok){const t=await res.text();throw new Error(`Server error ${res.status}: ${t}`);}
+        const result=await res.json();
+        if(result.error)throw new Error(result.error);
+        totalSaved+=result.saved||0;
       }
 
-      // Filter skip
-      const toAdd = allResults.filter(a => a.beat !== 'skip');
-      const skipped = allResults.length - toAdd.length;
+      sp(95,'Refreshing...','');
+      await load();
 
-      setProgress(65, `Writing ${toAdd.length} folders to Airtable...`, 'Almost done');
-      msg.textContent = `Analysis complete. Saving ${toAdd.length} folders...`;
-
-      let saved = 0;
-      for (const row of toAdd) {
-        const r = { ...row, isAI: true, status: 'unchecked' };
-        const id = await createRecord(r);
-        r._id = id;
-        data.push(r);
-        saved++;
-        if (saved % 5 === 0) {
-          setProgress(65 + Math.round((saved / toAdd.length) * 35), `Saving... ${saved}/${toAdd.length}`, '');
-        }
-      }
-
-      isAnalyzing = false;
-      setProgress(100);
-      const dz = document.getElementById('drop-zone');
-      if (dz) dz.classList.remove('analyzing');
-
-      msg.className = 'ok';
-      msg.textContent = `Done. ${saved} folders added with beat assignments. ${skipped} internal files skipped.`;
-
-      currentFilter = 'all';
-      document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.textContent.trim() === 'All'));
+      busy=false;
+      sp(100);
+      document.getElementById('dz').classList.remove('busy');
+      msg('ok',`Done. ${totalSaved} folders added with beat assignments.`);
+      filter='all';
+      document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',p.textContent.trim()==='All'));
       render();
 
-    } catch (err) {
-      isAnalyzing = false;
-      const dz = document.getElementById('drop-zone');
-      if (dz) dz.classList.remove('analyzing');
-      msg.className = 'err';
-      msg.textContent = 'Analysis failed: ' + err.message;
+    }catch(err){
+      busy=false;
+      document.getElementById('dz').classList.remove('busy');
+      msg('err','Analysis failed: '+err.message);
     }
   };
   reader.readAsText(file);
 }
 
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.remove('drag');
-  if (!isAnalyzing) handleFile(e.dataTransfer.files[0]);
-}
+function onDrop(e){e.preventDefault();document.getElementById('dz').classList.remove('drag');if(!busy)onFile(e.dataTransfer.files[0]);}
+function setF(f,el){filter=f;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');render();}
+function copyCmd(){navigator.clipboard.writeText(document.getElementById('cmd1').textContent).then(()=>{const b=document.querySelector('.copybtn');b.textContent='copied ✓';setTimeout(()=>b.textContent='copy',1500);});}
+function sl(s){return{pulled:'pulled ✓',flagged:'flagged ⚑',skip:'skip',unchecked:'unchecked'}[s]||'unchecked';}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-function setFilter(f, el) {
-  currentFilter = f;
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  render();
-}
-
-function copyCmd(id, btn) {
-  navigator.clipboard.writeText(document.getElementById(id).textContent)
-    .then(() => { btn.textContent='copied ✓'; setTimeout(()=>btn.textContent='copy',1500); });
-}
-
-function sLabel(s) { return {pulled:'pulled ✓',flagged:'flagged ⚑',skip:'skip',unchecked:'unchecked'}[s]||'unchecked'; }
-function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function render() {
-  const q = (document.getElementById('search').value||'').toLowerCase();
-  const visBeats = currentFilter === 'all' ? BEATS : BEATS.filter(b => b.id === currentFilter);
-
-  const pulled  = data.filter(d => d.status==='pulled').length;
-  const flagged = data.filter(d => d.status==='flagged').length;
-  const skip    = data.filter(d => d.status==='skip').length;
-  const aiCount = data.filter(d => d.isAI).length;
-
-  document.getElementById('stats').innerHTML = `
+function render(){
+  const q=(document.getElementById('sq').value||'').toLowerCase();
+  const vb=filter==='all'?BEATS:BEATS.filter(b=>b.id===filter);
+  const pulled=data.filter(d=>d.status==='pulled').length;
+  const flagged=data.filter(d=>d.status==='flagged').length;
+  const skip=data.filter(d=>d.status==='skip').length;
+  const ai=data.filter(d=>d.isAI).length;
+  document.getElementById('stats').innerHTML=`
     <div class="stat"><strong>${data.length}</strong>total</div>
     <div class="stat"><strong style="color:#7ed37e">${pulled}</strong>pulled</div>
     <div class="stat"><strong style="color:#fbbf24">${flagged}</strong>flagged</div>
     <div class="stat"><strong style="color:#888">${skip}</strong>skip</div>
-    ${aiCount?`<div class="stat"><strong style="color:#a78bfa">${aiCount}</strong>ai-assigned</div>`:''}
+    ${ai?`<div class="stat"><strong style="color:#a78bfa">${ai}</strong>ai-assigned</div>`:''}
     <div class="stat"><strong>${data.length-pulled-flagged-skip}</strong>unchecked</div>
   `;
-
-  let html = '';
-  visBeats.forEach(beat => {
-    let rows = data.filter(d => d.beat === beat.id);
-    if (q) rows = rows.filter(d => d.folder.toLowerCase().includes(q)||d.path.toLowerCase().includes(q)||d.notes.toLowerCase().includes(q));
-    if (!rows.length) return;
-
-    html += `<div class="beat-section">
-      <div class="beat-header" style="border-left:3px solid ${beat.tc}">
-        <span class="beat-badge" style="background:${beat.bg};color:${beat.tc}">${beat.num}</span>
-        <span class="beat-label">${beat.label}</span>
-        <span class="beat-count">${rows.length} folders</span>
+  let html='';
+  vb.forEach(beat=>{
+    let rows=data.filter(d=>d.beat===beat.id);
+    if(q)rows=rows.filter(d=>d.folder.toLowerCase().includes(q)||d.path.toLowerCase().includes(q)||d.notes.toLowerCase().includes(q));
+    if(!rows.length)return;
+    const opts=BEATS.map(b=>`<option value="${b.id}">${b.n} ${b.l.split('—')[0].trim()}</option>`).join('');
+    html+=`<div class="beat-section">
+      <div class="beat-hdr" style="border-left:3px solid ${beat.tc}">
+        <span class="beat-badge" style="background:${beat.bg};color:${beat.tc}">${beat.n}</span>
+        <span class="beat-lbl">${beat.l}</span>
+        <span class="beat-cnt">${rows.length} folders</span>
       </div>
-      <div class="table-wrap">
-        <div class="trow thead">
-          <div class="tcell">Folder / path</div>
-          <div class="tcell">Beat</div>
-          <div class="tcell">Priority</div>
-          <div class="tcell">Status</div>
-          <div class="tcell">Notes</div>
-          <div class="tcell"></div>
+      <div class="table">
+        <div class="row head">
+          <div class="cell">Folder / path</div><div class="cell">Beat</div>
+          <div class="cell">Priority</div><div class="cell">Status</div>
+          <div class="cell">Notes</div><div class="cell"></div>
         </div>`;
-
-    rows.forEach(r => {
-      const sel = BEATS.map(b => `<option value="${b.id}"${b.id===r.beat?' selected':''}>${b.num} ${b.label.split('—')[0].trim()}</option>`).join('');
-      html += `<div class="trow">
-        <div class="tcell"><div class="cell-stack">
-          <input class="edit-text" value="${esc(r.folder)}" placeholder="Folder name" onchange="updateField('${r._id}','folder',this.value)">
-          <input class="sub-text" value="${esc(r.path)}" placeholder="path / location" onchange="updateField('${r._id}','path',this.value)">
+    rows.forEach(r=>{
+      const sel=BEATS.map(b=>`<option value="${b.id}"${b.id===r.beat?' selected':''}>${b.n} ${b.l.split('—')[0].trim()}</option>`).join('');
+      html+=`<div class="row">
+        <div class="cell"><div class="fstack">
+          <input class="fi" value="${esc(r.folder)}" placeholder="Folder name" onchange="dbu('${r._id}','folder',this.value)">
+          <input class="fp" value="${esc(r.path)}" placeholder="path" onchange="dbu('${r._id}','path',this.value)">
         </div></div>
-        <div class="tcell"><select class="beat-select" onchange="updateField('${r._id}','beat',this.value);render()">${sel}</select></div>
-        <div class="tcell"><button class="pri-btn pri-${r.pri}" onclick="cyclePri('${r._id}')">${r.pri}</button></div>
-        <div class="tcell"><button class="status-btn ${r.status}" onclick="cycleStatus('${r._id}')">${sLabel(r.status)}</button></div>
-        <div class="tcell">
-          <textarea class="note-ta" placeholder="add note..." onchange="updateField('${r._id}','notes',this.value)" rows="2">${esc(r.notes)}</textarea>
-          ${r.isAI?'<span class="ai-label">✦ ai suggested</span>':''}
+        <div class="cell"><select class="bsel" onchange="dbu('${r._id}','beat',this.value);render()">${sel}</select></div>
+        <div class="cell"><button class="pri ${r.pri}" onclick="cyclePri('${r._id}')">${r.pri}</button></div>
+        <div class="cell"><button class="sbtn ${r.status}" onclick="cycleStatus('${r._id}')">${sl(r.status)}</button></div>
+        <div class="cell">
+          <textarea class="note" placeholder="add note..." onchange="dbu('${r._id}','notes',this.value)" rows="2">${esc(r.notes)}</textarea>
+          ${r.isAI?'<span class="ai-lbl">✦ ai suggested</span>':''}
         </div>
-        <div class="tcell" style="padding:4px"><button class="del-btn" onclick="deleteRow('${r._id}')" title="Remove">×</button></div>
+        <div class="cell" style="padding:4px"><button class="delbtn" onclick="delRow('${r._id}')">×</button></div>
       </div>`;
     });
-    html += `</div></div>`;
+    html+=`</div></div>`;
   });
-
-  if (!html) html = `<div class="empty">No folders here yet. Drop a txt file above to import.</div>`;
-  document.getElementById('content').innerHTML = html;
+  if(!html)html=`<div class="empty">No folders here yet. Drop a txt file above to import.</div>`;
+  document.getElementById('content').innerHTML=html;
 }
 
-loadFromAirtable();
+load();
 </script>
 </body>
 </html>

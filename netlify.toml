@@ -3,11 +3,6 @@
   publish   = "."
 
 [[redirects]]
-  from   = "/api/airtable"
-  to     = "/.netlify/functions/airtable"
-  status = 200
-
-[[redirects]]
-  from   = "/api/analyze"
-  to     = "/.netlify/functions/analyze"
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
   status = 200
